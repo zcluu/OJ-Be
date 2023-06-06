@@ -18,7 +18,6 @@ class TestCaseZipProcessor(object):
         test_case_list = self.filter_name_list(name_list, spj=spj, dir=dir)
         if not test_case_list:
             raise "Empty file"
-
         test_case_id = rand_str()
         test_case_dir = os.path.join('testcases', test_case_id)
         os.mkdir(test_case_dir)
@@ -26,7 +25,6 @@ class TestCaseZipProcessor(object):
 
         size_cache = {}
         md5_cache = {}
-
         for item in test_case_list:
             with open(os.path.join(test_case_dir, item), "wb") as f:
                 content = zip_file.read(f"{dir}{item}").replace(b"\r\n", b"\n")

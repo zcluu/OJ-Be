@@ -24,6 +24,7 @@ async def upload_testcases(file: UploadFile = File(...), spj=False):
         content = await file.read()
         f.write(content)
     zip_process = TestCaseZipProcessor()
+    spj = spj == 'true'
     info, test_case_id = zip_process.process_zip(tmp_file, spj=spj)
     os.remove(tmp_file)
     return {"id": test_case_id, "info": info, "spj": spj}
