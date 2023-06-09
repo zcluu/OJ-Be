@@ -1,8 +1,5 @@
-import hashlib
 import json
 import os
-import random
-import re
 import zipfile
 
 from .common import *
