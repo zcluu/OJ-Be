@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 
-from .views import problems_router
+from .db.database import Base, engine
+from .views import *
 from .models import *
 
 app = FastAPI()
+Base.metadata.create_all(engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,3 +17,4 @@ app.add_middleware(
 )
 
 app.include_router(problems_router)
+app.include_router(user_router)

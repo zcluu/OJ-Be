@@ -1,7 +1,8 @@
 import os
 
 environ = os.environ
-PROJECT_PATH = os.path.dirname(__file__)
+# PROJECT_PATH = os.path.dirname(__file__)
+PROJECT_PATH = os.getcwd()
 TEMPLATE_FOLDER = os.path.join(PROJECT_PATH, "templates")
 STATIC_FOLDER = os.path.join(PROJECT_PATH, "static")
 DEBUG = True  # open debug /or hot restart
@@ -48,4 +49,4 @@ HOME_PATH = '/'
 
 # ############################## flask start config ######################################
 HOST = '0.0.0.0'
-PORT = 5000
+PORT = 8000

@@ -2,7 +2,7 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 import datetime
 
-from db.database import Base, BaseModel
+from fastapiapp.db.database import Base, BaseModel
 from fastapiapp.util.common import hash256
 
 

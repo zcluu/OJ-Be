@@ -1,5 +1,6 @@
 from fastapiapp import app
+from fastapiapp.config import *
 import uvicorn
 
 if __name__ == '__main__':
-    uvicorn.run(app)
+    uvicorn.run(app, host=HOST, port=PORT)
