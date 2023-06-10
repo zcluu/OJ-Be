@@ -20,7 +20,7 @@ python3 -c "import fastapi;print('Support FastAPI:',fastapi.__version__)"
 2. Start OJ-Be service
 ```shell
 source your_venv_name/bin/activate
-python3 -m uvicorn main:app --reload --port 8000
+python3 main.py
 ```
 3. Visit the OJ-Be api page
 
