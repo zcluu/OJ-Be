@@ -50,3 +50,7 @@ HOME_PATH = '/'
 # ############################## flask start config ######################################
 HOST = '0.0.0.0'
 PORT = 8000
+
+JUDGER_SERVER = 'http://118.190.60.13:16358/'
+JUDGER_TOKEN = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'
+
