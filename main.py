@@ -1,6 +1,6 @@
-from fastapiapp import app
-from fastapiapp.config import *
+from OJ import app
+from OJ.app.settings import *
 import uvicorn
 
 if __name__ == '__main__':
-    uvicorn.run(app, host=HOST, port=PORT)
+    uvicorn.run(app, host=HOST, port=PORT, reload=DEBUG)
