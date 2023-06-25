@@ -1,7 +1,7 @@
 import typing
 
 from fastapi import Request, status
-from fastapi.responses import JSONResponse,Response
+from fastapi.responses import JSONResponse, Response
 
 from sqlalchemy.orm import Session
 
@@ -22,9 +22,10 @@ class CheckLogin(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         path: str = request.get('path')
-        if path in CHECKLOGIN_EXCLUDE_PATH:
-            response = await call_next(request)
-            return response
+        for it in CHECKLOGIN_EXCLUDE_PATH:
+            if path.startswith(it):
+                response = await call_next(request)
+                return response
         else:
             with Session(engine) as session:
                 session.begin()
