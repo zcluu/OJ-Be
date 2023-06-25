@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 
 import os
 import requests
+from sqlalchemy import desc
 
 from sqlalchemy.orm import Session
 
@@ -17,13 +18,45 @@ from OJ.util.schedule import *
 
 from OJ.models.ProblemModels import ProblemInfo
 
+from fastapi_pagination import Page, Params, paginate
+
 router = APIRouter(
     prefix='/api/problem',
     tags=['problems']
 )
 
 
-@router.post("/detail/:problem_id")
+@router.get("/hot")
+async def problem_hot(db: Session = Depends(get_session)):
+    problems = db.query(ProblemInfo).filter_by(status=0).order_by(desc(ProblemInfo.submission_count)).limit(5).all()
+    result = []
+    for pro in problems:
+        result.append({
+            'id': pro.id,
+            'title': pro.title,
+            'submission': pro.submission_count,
+            'ac_count': pro.ac_count,
+            'ac_rate': 0 if pro.ac_count == 0 else (pro.ac_count / pro.submission_count) * 100
+        })
+    return result
+
+
+@router.get("/all")
+async def problem_all(db: Session = Depends(get_session), params: Params = Depends()):
+    problems = db.query(ProblemInfo).filter_by(status=0).all()
+    result = []
+    for pro in problems:
+        result.append({
+            'id': pro.id,
+            'title': pro.title,
+            'submission': pro.submission_count,
+            'ac_count': pro.ac_count,
+            'ac_rate': 0 if pro.ac_count == 0 else (pro.ac_count / pro.submission_count) * 100
+        })
+    return paginate(result, params)
+
+
+@router.get("/detail")
 async def problem_detail(problem_id, db: Session = Depends(get_session)):
     problem_id = problem_id
     problem = db.query(ProblemInfo).filter_by(id=problem_id).first()
@@ -31,7 +64,11 @@ async def problem_detail(problem_id, db: Session = Depends(get_session)):
         return JSONResponse({
             'msg': '问题不存在，异常访问'
         }, status_code=404)
-    return problem.to_dict()
+    response = problem.to_dict()
+    response['samples'] = [(it.split('|||')[0], it.split('|||')[1]) for it in response['samples'].split('+#+#')]
+    response['language'] = response['language'].split('###')
+    response['created_by'] = problem.user.username
+    return response
 
 
 @router.post("/create")
