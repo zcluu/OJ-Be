@@ -62,6 +62,10 @@ CHECKLOGIN_EXCLUDE_PATH = [
     '/api/user/register',
     '/api/user/login',
     '/api/submission/status',
+    '/api/contest/recent',
+    '/api/problem/hot',
+    '/api/problem/all',
+    '/api/problem/detail',
     '/docs',
     '/openapi.json',
 ]
