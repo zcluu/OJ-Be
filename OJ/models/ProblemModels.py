@@ -15,6 +15,7 @@ class ProblemInfo(Base, BaseModel):
     description = Column(Text, nullable=False)  # Description
     inputs = Column(Text, nullable=False)  # Input
     outputs = Column(Text, nullable=False)  # Output
+    language = Column(Text, nullable=False)
     # sample input1|||sample output1+#+#sample input2|||sample output2
     samples = Column(Text, nullable=False, default='')
     hints = Column(Text, default='')
@@ -42,6 +43,9 @@ class ProblemInfo(Base, BaseModel):
     @property
     def contest(self):
         return self._contest
+    @property
+    def user(self):
+        return self._user
 
 
 class UserProblemStatus(Base, BaseModel):
