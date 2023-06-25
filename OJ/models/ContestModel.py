@@ -27,15 +27,19 @@ class ContestInfo(Base, BaseModel):
 
     @property
     def status(self):
-        if self.start_time > datetime.datetime.now():
+        if self.start_at > datetime.datetime.now():
             # 没有开始 返回1
             return ContestStatus.CONTEST_NOT_START
-        elif self.end_time < datetime.datetime.now():
+        elif self.start_at < datetime.datetime.now():
             # 已经结束 返回-1
             return ContestStatus.CONTEST_ENDED
         else:
             # 正在进行 返回0
-            return OJ
+            return ContestStatus.CONTEST_UNDERWAY
+
+    @property
+    def user(self):
+        return self._user
 
 
 class ACMRank(Base, BaseModel):
