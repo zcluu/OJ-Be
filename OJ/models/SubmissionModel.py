@@ -23,7 +23,7 @@ class Submission(Base, BaseModel):
 
     _user = relationship('UserInfo', backref='submissions')
     _contest = relationship('ContestInfo', backref='submissions')
-    _problem = relationship('ProblemInfo', backref='submissions', lazy='select')
+    _problem = relationship('ProblemInfo', backref='submissions')
 
     @property
     def user(self):
