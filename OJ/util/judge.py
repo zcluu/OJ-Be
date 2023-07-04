@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import time
 from urllib.parse import urljoin
 
 import dramatiq
@@ -10,7 +11,7 @@ from sqlalchemy.orm import Session
 import requests
 
 from OJ.app.settings import *
-from OJ.db.database import get_session, engine
+from OJ.db.database import get_session, engine, SessionLocal
 from OJ.models import *
 from OJ.models.JudgeModel import JudgeServer
 from OJ.util import submission_cache
@@ -61,7 +62,7 @@ class DispatcherBase(object):
 
 class JudgeDispatcher(DispatcherBase):
 
-    def __init__(self, submission_id, problem_id, session=Session(engine)):
+    def __init__(self, submission_id, problem_id, session=SessionLocal()):
         """
         :param submission_id: which submission
         :param problem_id: which problem
@@ -72,7 +73,6 @@ class JudgeDispatcher(DispatcherBase):
         self.submission_id = submission_id
 
         self.submission = self.sess.query(Submission).filter_by(id=self.submission_id).first()
-
         self.problem_id = problem_id
         self.contest_id = self.submission.contest_id
         self.last_result = self.submission.result if self.submission.info else None
@@ -176,6 +176,10 @@ class JudgeDispatcher(DispatcherBase):
 
         if self.contest_id:
             self.update_contest_problem_status()
+
+        self.sess.expire_all()
+        self.sess.close_all()
+        self.sess.close()
 
     def update_contest_problem_status(self):
         user = self.submission.user
