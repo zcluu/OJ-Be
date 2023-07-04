@@ -21,6 +21,9 @@ class CheckLogin(BaseHTTPMiddleware):
         self.app = app
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
+        if request.method == 'OPTIONS':
+            response = await call_next(request)
+            return response
         path: str = request.get('path')
         for it in CHECKLOGIN_EXCLUDE_PATH:
             if path.startswith(it):
@@ -29,10 +32,10 @@ class CheckLogin(BaseHTTPMiddleware):
         else:
             with Session(engine) as session:
                 session.begin()
-                token = request.headers.get('token', '')
+                token = request.headers.get('x-token', '')
+                print(request.headers)
                 sess = session.query(UserSession).filter(UserSession.token == token).first()
                 if not sess:
-                    print('not login')
                     return JSONResponse({}, status_code=status.HTTP_401_UNAUTHORIZED)
                 response = await call_next(request)
                 session.close()
