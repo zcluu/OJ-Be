@@ -107,3 +107,10 @@ class Announcement(Base, BaseModel):
     author = Column(Integer, ForeignKey('UserInfo.id'), nullable=False)
     is_visible = Column(Integer, default=True)
     _contest = relationship('ContestInfo', backref='announcements')
+    _user = relationship('UserInfo', backref='contest_announcements')
+
+    def user(self, filed=None):
+        if not filed:
+            return self._user
+        else:
+            return getattr(self._user, filed)
