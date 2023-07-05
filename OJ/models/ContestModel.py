@@ -62,6 +62,12 @@ class ACMRank(Base, BaseModel):
     _contest = relationship('ContestInfo', backref='acm_ranks')
     _submission = relationship('Submission')
 
+    def user(self, filed=None):
+        if not filed:
+            return self._user
+        else:
+            return getattr(self._user, filed)
+
 
 class OIRank(Base, BaseModel):
     __tablename__ = 'oi_rank'
