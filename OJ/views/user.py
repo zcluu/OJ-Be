@@ -21,7 +21,7 @@ async def login(form: LoginForm, db: Session = Depends(get_session)):
     if not user or not user.check_password(form.password):
         return JSONResponse({
             'status': 404,
-            'msg': '用户名或密码错误'
+            'msg': 'Invalid Username or Password!'
         }, status_code=404)
     token = get_random_string()
     sess = db.query(UserSession).filter_by(user_id=user.id)
@@ -33,7 +33,7 @@ async def login(form: LoginForm, db: Session = Depends(get_session)):
         db.add(sess)
         db.commit()
     return JSONResponse({
-        'msg': '登录成功',
+        'msg': 'Login Successfully!',
         'token': token,
     })
 

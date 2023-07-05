@@ -16,7 +16,7 @@ from OJ.util.zip_processor import TestCaseZipProcessor
 
 from OJ.util.schedule import *
 
-from OJ.models.ProblemModels import ProblemInfo
+from OJ.models.ProblemModels import ProblemInfo, UserProblemStatus
 
 from fastapi_pagination import Page, Params, paginate
 
@@ -68,6 +68,13 @@ async def problem_detail(problem_id, db: Session = Depends(get_session)):
     response['samples'] = [(it.split('|||')[0], it.split('|||')[1]) for it in response['samples'].split('+#+#')]
     response['language'] = response['language'].split('###')
     response['created_by'] = problem.user.username
+
+    status = db.query(UserProblemStatus).filter_by(problem_id=problem_id).first()
+    if status:
+        status = status.to_dict(['is_ac', 'score', 'submission'])
+        if status['submission']:
+            status['submission'] = status['submission'].to_dict(['result'])
+    response['status'] = status
     return response
 
 

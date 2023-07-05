@@ -1,6 +1,7 @@
 from threading import Thread
 
 from fastapi import APIRouter, Depends, Header, status, Response
+from fastapi_pagination import Params, paginate
 
 from sqlalchemy.orm import Session
 
@@ -61,3 +62,12 @@ async def submission_status(submission_id: int,
         }
     else:
         return submission.to_dict()
+
+
+@router.get("/problem")
+async def submission_problem(pid: int, db: Session = Depends(get_session), params: Params = Depends()):
+    submissions = db.query(Submission).filter_by(problem_id=pid).all()
+    response = []
+    for sub in submissions:
+        response.append(sub.to_dict(['id', 'create_time', 'result', 'language']))
+    return paginate(response, params)
