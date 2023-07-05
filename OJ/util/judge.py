@@ -132,6 +132,7 @@ class JudgeDispatcher(DispatcherBase):
             self.submission.result = JudgeStatus.COMPILE_ERROR
             self.statistic_info["err_info"] = resp["data"]
             self.statistic_info["score"] = 0
+            self.submission.info = resp
         else:
             resp["data"].sort(key=lambda x: int(x["test_case"]))
             self.submission.info = resp
@@ -148,6 +149,7 @@ class JudgeDispatcher(DispatcherBase):
             user_id=self.submission.user_id,
             problem_id=self.problem_id
         ).first()
+        problem.submission_count = self.problem.submission_count + 1
         if not problem_status:
             problem_status = UserProblemStatus(
                 user_id=self.submission.user_id,
@@ -170,6 +172,8 @@ class JudgeDispatcher(DispatcherBase):
             if is_ac:
                 problem_status.ac_id = self.submission.id
             problem_status.is_ac = is_ac
+        if problem_status.is_ac:
+            problem.ac_count = problem.ac_count + 1
         if not exist:
             self.sess.add(problem_status)
         self.sess.commit()
@@ -262,8 +266,13 @@ class JudgeDispatcher(DispatcherBase):
                 else:
                     accepted_number = 0
                 submission_number = 1
-                total_time = (datetime.datetime.now() - self.contest.start_at).seconds
-                ac_time = (datetime.datetime.now() - self.contest.start_at).seconds
+                if is_ac:
+                    diff_time = datetime.datetime.now() - self.contest.start_at
+                    ac_time = diff_time.days * 24 * 3600 + diff_time.seconds
+                    total_time = ac_time
+                else:
+                    ac_time = None
+                    total_time = 20 * 60
                 is_first_ac = len(ac_rank) == 0
                 new_rank = ACMRank(
                     user_id=self.submission.user_id,
@@ -286,12 +295,13 @@ class JudgeDispatcher(DispatcherBase):
                 is_ac = self.submission.result == 0
                 if is_ac:
                     accepted_number = 1
-                    ac_time = (datetime.datetime.now() - self.contest.start_at).seconds
-                    total_time = user_rank.total_time * 20 * 60 + ac_time
+                    diff_time = datetime.datetime.now() - self.contest.start_at
+                    ac_time = diff_time.days * 24 * 3600 + diff_time.seconds
+                    total_time = submission_number * 20 * 60 + ac_time
                 else:
                     ac_time = None
                     accepted_number = 0
-                    total_time = submission_number * 20 * 60
+                    total_time = user_rank.total_time + 20 * 60
                 is_first_ac = len(ac_rank) == 0 and is_ac
                 user_rank.is_ac = is_ac
                 user_rank.accepted_number = accepted_number

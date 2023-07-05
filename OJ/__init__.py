@@ -1,10 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_pagination.utils import FastAPIPaginationWarning
 
 from .db.database import Base, engine
 from .views import *
 from .models import *
 from .middleware import users
+import warnings
+
+warnings.simplefilter("ignore", FastAPIPaginationWarning)
 
 app = FastAPI()
 Base.metadata.create_all(engine)
