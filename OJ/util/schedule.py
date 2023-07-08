@@ -15,19 +15,20 @@ class RegisterForm(BaseModel):
 
 
 class ProblemForm(BaseModel):
+    id: int = -1
     title: str
     description: str
     inputs: str
     outputs: str
-    samples: str
-    hints: str
+    samples: list
+    language: list
+    mode: int
+    is_spj: bool
     source: str
-    is_spj: str
+    time_limit: int
+    memory_limit: int
+    hints: str
     test_id: str
-    time_limit: str
-    memory_limit: str
-    io_mode: str
-    status: str
 
 
 class JudgeForm(BaseModel):
