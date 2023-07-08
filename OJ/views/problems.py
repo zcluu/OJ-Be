@@ -1,4 +1,6 @@
-from fastapi import Request, UploadFile, File, APIRouter, Depends
+from typing import Union
+
+from fastapi import Request, UploadFile, File, APIRouter, Depends, Header
 from fastapi.responses import JSONResponse
 
 import os
@@ -12,6 +14,7 @@ from OJ.app.settings import PROJECT_PATH, JUDGER_SERVER
 from OJ.models import UserInfo
 from OJ.db.database import get_session
 from OJ.util.common import rand_str
+from OJ.util.controller import get_user
 from OJ.util.zip_processor import TestCaseZipProcessor
 
 from OJ.util.schedule import *
@@ -57,19 +60,19 @@ async def problem_all(db: Session = Depends(get_session), params: Params = Depen
 
 
 @router.get("/detail")
-async def problem_detail(problem_id, db: Session = Depends(get_session)):
+async def problem_detail(problem_id, x_token: Union[str, None] = Header(None), db: Session = Depends(get_session)):
     problem_id = problem_id
     problem = db.query(ProblemInfo).filter_by(id=problem_id).first()
     if not problem:
         return JSONResponse({
             'msg': '问题不存在，异常访问'
         }, status_code=404)
+    user = get_user(x_token)
     response = problem.to_dict()
     response['samples'] = [(it.split('|||')[0], it.split('|||')[1]) for it in response['samples'].split('+#+#')]
     response['language'] = response['language'].split('###')
     response['created_by'] = problem.user.username
-
-    status = db.query(UserProblemStatus).filter_by(problem_id=problem_id).first()
+    status = db.query(UserProblemStatus).filter_by(user_id=user.id, problem_id=problem_id).first()
     if status:
         status = status.to_dict(['is_ac', 'score', 'submission'])
         if status['submission']:
