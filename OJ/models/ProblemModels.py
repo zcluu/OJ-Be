@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 import datetime
 
 from OJ.db.database import Base, BaseModel
+from OJ.util.aes import AESTool
 from OJ.util.constant import ContestStatus
 from OJ.util.common import hash256
 
@@ -34,6 +35,7 @@ class ProblemInfo(Base, BaseModel):
     status = Column(Integer, default=0)
     test_case_score = Column(JSON, default={})
     total_score = Column(Integer, default=0)
+    create_time = Column(DateTime, default=datetime.datetime.now)
     created_by = Column(Integer, ForeignKey('UserInfo.id'))
     contest_id = Column(Integer, ForeignKey('ContestInfo.id'))
     statistic_info = Column(JSON, default={})
@@ -43,9 +45,16 @@ class ProblemInfo(Base, BaseModel):
     @property
     def contest(self):
         return self._contest
+
     @property
-    def user(self):
-        return self._user
+    def pid(self):
+        return AESTool.encrypt_data(self.id)
+
+    def user(self, filed=None):
+        if not filed:
+            return self._user
+        else:
+            return getattr(self._user, filed)
 
 
 class UserProblemStatus(Base, BaseModel):

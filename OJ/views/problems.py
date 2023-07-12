@@ -13,13 +13,14 @@ from OJ.app.settings import PROJECT_PATH, JUDGER_SERVER
 
 from OJ.models import UserInfo
 from OJ.db.database import get_session
+from OJ.util.aes import AESTool
 from OJ.util.common import rand_str
 from OJ.util.controller import get_user
 from OJ.util.zip_processor import TestCaseZipProcessor
 
 from OJ.util.schedule import *
 
-from OJ.models.ProblemModels import ProblemInfo, UserProblemStatus
+from OJ.models import ProblemInfo, UserProblemStatus, ContestProblem
 
 from fastapi_pagination import Page, Params, paginate
 
@@ -50,7 +51,7 @@ async def problem_all(db: Session = Depends(get_session), params: Params = Depen
     result = []
     for pro in problems:
         result.append({
-            'id': pro.id,
+            'id': AESTool.encrypt_data(pro.id),
             'title': pro.title,
             'submission': pro.submission_count,
             'ac_count': pro.ac_count,
@@ -60,23 +61,41 @@ async def problem_all(db: Session = Depends(get_session), params: Params = Depen
 
 
 @router.get("/detail")
-async def problem_detail(problem_id, x_token: Union[str, None] = Header(None), db: Session = Depends(get_session)):
-    problem_id = problem_id
-    problem = db.query(ProblemInfo).filter_by(id=problem_id).first()
-    if not problem:
+async def problem_detail(
+        pid, cid: int = -1,
+        x_token: Union[str, None] = Header(None),
+        db: Session = Depends(get_session)
+):
+    problem_id = AESTool.decrypt_data(pid)
+    if cid > 0:
+        cp = db.query(ContestProblem).filter_by(pid=problem_id, cid=cid).first()
+        if not cp:
+            return JSONResponse({
+                'msg': '问题不存在，异常访问'
+            }, status_code=404)
+        problem = cp.problem
+    else:
+        cp = None
+        problem = db.query(ProblemInfo).filter_by(id=problem_id).first()
+    if not problem or problem.status == 1:
         return JSONResponse({
             'msg': '问题不存在，异常访问'
         }, status_code=404)
     user = get_user(x_token)
     response = problem.to_dict()
-    response['samples'] = [(it.split('|||')[0], it.split('|||')[1]) for it in response['samples'].split('+#+#')]
+    if response['samples']:
+        response['samples'] = [(it.split('|||')[0], it.split('|||')[1]) for it in response['samples'].split('+#+#')]
+    else:
+        response['samples'] = []
     response['language'] = response['language'].split('###')
-    response['created_by'] = problem.user.username
+    response['created_by'] = problem.user('username')
     status = db.query(UserProblemStatus).filter_by(user_id=user.id, problem_id=problem_id).first()
     if status:
         status = status.to_dict(['is_ac', 'score', 'submission'])
         if status['submission']:
             status['submission'] = status['submission'].to_dict(['result'])
+    if cp:
+        response['cp_id'] = AESTool.encrypt_data(cp.id)
     response['status'] = status
     return response
 

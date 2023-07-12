@@ -8,7 +8,8 @@ from OJ.util.controller import get_user
 from OJ.util.judge import JudgeDispatcher
 from OJ.util.constant import JudgeStatus, CONTEST_TYPE, ContestRuleType
 from OJ.util.schedule import *
-from OJ.models import Submission, ProblemInfo, ContestInfo, Announcement, ACMRank
+from OJ.models import Submission, ProblemInfo, ContestInfo, Announcement, ACMRank, ContestProblem
+from OJ.util.aes import AESTool
 
 from fastapi_pagination import Page, paginate, Params
 from typing import Union
@@ -30,7 +31,7 @@ async def get_recent(db: Session = Depends(get_session)):
         del dic['created_by']
         del dic['password']
         del dic['only_id']
-        dic['admin'] = it.user.username
+        dic['admin'] = it.user('username')
         dic['rule'] = 'ACM' if dic['rule'] == 0 else 'OI'
         result.append(dic)
     return result
@@ -48,7 +49,7 @@ async def get_all(db: Session = Depends(get_session), params: Params = Depends()
         del dic['created_by']
         del dic['password']
         del dic['only_id']
-        dic['admin'] = it.user.username
+        dic['admin'] = it.user('username')
         dic['rule'] = 'ACM' if dic['rule'] == 0 else 'OI'
         result.append(dic)
     return paginate(result, params)
@@ -56,9 +57,11 @@ async def get_all(db: Session = Depends(get_session), params: Params = Depends()
 
 @router.get('/detail')
 async def get_detail(contest_id, db: Session = Depends(get_session)):
-    def get_problem_info(pro: ProblemInfo):
-        dic = pro.to_dict(['id', 'title', 'submission_count', 'ac_count', ])
+    def get_problem_info(cp: ContestProblem):
+        pro = cp.problem
+        dic = pro.to_dict(['pid', 'title', 'submission_count', 'ac_count', ])
         dic['ac_rate'] = 0 if pro.ac_count == 0 else (pro.ac_count / pro.submission_count) * 100
+        dic['cp_id'] = AESTool.encrypt_data(cp.id)
         return dic
 
     contest = db.query(ContestInfo).filter_by(id=contest_id).first()
@@ -70,8 +73,8 @@ async def get_detail(contest_id, db: Session = Depends(get_session)):
     response = contest.to_dict([
         'id', 'title', 'description', 'start_at', 'end_at', 'rule', 'status'
     ])
-    problems = db.query(ProblemInfo).filter_by(contest_id=contest.id).all()
-    problems = [get_problem_info(it) for it in problems]
+    cps = db.query(ContestProblem).filter_by(cid=contest.id).all()
+    problems = [get_problem_info(it) for it in cps]
     response['problems'] = problems
     return response
 
@@ -97,8 +100,8 @@ async def get_rank(cid, db: Session = Depends(get_session), params: Params = Dep
         return JSONResponse({
             'msg': '比赛不存在，异常访问'
         }, status_code=status.HTTP_404_NOT_FOUND)
-
-    problems = db.query(ProblemInfo).filter_by(contest_id=cid).all()
+    cps = db.query(ContestProblem).filter_by(cid=cid).all()
+    problems = [cp.problem for cp in cps]
     problems_id = {it.id: ix for ix, it in enumerate(problems)}
     result = []
     usernames = []
@@ -112,7 +115,8 @@ async def get_rank(cid, db: Session = Depends(get_session), params: Params = Dep
             u_rank[username] = u_rank.get(username, [])
             u_rank[username].append(rank)
             u_result[username] = u_result.get(username, {})
-            u_result[username]['submissions'] = u_result[username].get('submissions', [{} for _ in range(len(problems))])
+            u_result[username]['submissions'] = u_result[username].get('submissions',
+                                                                       [{} for _ in range(len(problems))])
             u_result[username]['problems'] = u_result[username].get('problems', [0 for _ in range(len(problems))])
             u_result[username]['problems'][problems_id[rank.problem_id]] = 1
             u_result[username]['submission_count'] = u_result[username].get('submission_count', 0) + \
@@ -128,12 +132,12 @@ async def get_rank(cid, db: Session = Depends(get_session), params: Params = Dep
             u_result[username]['submissions'][problems_id[rank.problem_id]]['total_time'] = rank.total_time
             u_result[username]['submissions'][problems_id[rank.problem_id]]['is_ac'] = rank.is_ac
             u_result[username]['submissions'][problems_id[rank.problem_id]]['is_first_ac'] = rank.is_first_ac
-            u_result[username]['submissions'][problems_id[rank.problem_id]]['submission_number'] = rank.submission_number
+            u_result[username]['submissions'][problems_id[rank.problem_id]][
+                'submission_number'] = rank.submission_number
     response = []
     for key, val in u_result.items():
         dic = {'username': key}
         dic.update(val)
         response.append(dic)
     response.sort(key=lambda x: (-x['ac_count'], x['total_time'], x['username']))
-    problems_length = len(problems)
-    return {'ranks': paginate(response, params), 'length': problems_length}
+    return {'ranks': paginate(response, params), 'length': len(cps)}

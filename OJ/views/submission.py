@@ -5,6 +5,7 @@ from fastapi_pagination import Params, paginate
 
 from sqlalchemy.orm import Session
 
+from OJ.util.aes import AESTool
 from OJ.db.database import get_session, SessionLocal
 
 from OJ.util.controller import get_user
@@ -12,7 +13,7 @@ from OJ.util.judge import JudgeDispatcher
 from OJ.util.constant import JudgeStatus
 from OJ.util.schedule import *
 
-from OJ.models import Submission, ProblemInfo
+from OJ.models import Submission, ProblemInfo, ContestProblem
 
 from typing import Union
 
@@ -24,21 +25,30 @@ router = APIRouter(
 
 @router.post("/judge")
 async def judge(form: JudgeForm, x_token: Union[str, None] = Header(None), db: Session = Depends(get_session)):
-    problem = db.query(ProblemInfo).filter_by(id=form.problem_id).first()
+    pid = AESTool.decrypt_data(form.pid)
+    problem = db.query(ProblemInfo).filter_by(id=pid).first()
     if not problem:
         return Response(status_code=status.HTTP_404_NOT_FOUND)
     language = form.language
     user = get_user(x_token)
     user_id = user.id
     code_source = form.source_code
+    if form.cp_id != '':
+        cp = db.query(ContestProblem).filter_by(id=AESTool.decrypt_data(form.cp_id), pid=pid).first()
+        if cp:
+            cid = cp.cid
+        else:
+            cid = None
+    else:
+        cid = None
     submission = Submission(language=language,
                             user_id=user_id,
                             code_source=code_source,
-                            problem_id=form.problem_id,
-                            contest_id=problem.contest_id)
+                            problem_id=pid,
+                            contest_id=cid)
     db.add(submission)
     db.commit()
-    thread = Thread(target=SubmissionJudge, args=(submission.id, problem.id))
+    thread = Thread(target=SubmissionJudge, args=(submission.id, pid))
     thread.start()
     # JudgeDispatcher(submission.id, problem.id, db).judge()
     return submission.id
@@ -65,7 +75,8 @@ async def submission_status(submission_id: int,
 
 
 @router.get("/problem")
-async def submission_problem(pid: int, db: Session = Depends(get_session), params: Params = Depends()):
+async def submission_problem(pid: str, db: Session = Depends(get_session), params: Params = Depends()):
+    pid = AESTool.decrypt_data(pid)
     submissions = db.query(Submission).filter_by(problem_id=pid).all()
     response = []
     for sub in submissions:
