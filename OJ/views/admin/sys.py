@@ -33,7 +33,7 @@ router = APIRouter(
 )
 
 
-@router.post('/qdu/export')
+@router.post('/qdu/import')
 async def qdu_export(file: UploadFile = File(...), db: Session = Depends(get_session)):
     tmp_file = f"tmp/{rand_str()}.zip"
     with open(tmp_file, "wb") as f:
@@ -47,10 +47,14 @@ async def qdu_export(file: UploadFile = File(...), db: Session = Depends(get_ses
     files = zip_file.namelist()
     dic = {}
     for f in files:
+        if len(f.strip('/').split('/')) == 1:
+            continue
         tid = f.split('/')[0]
         dic[tid] = dic.get(tid, {})
         if '.json' in f:
             dic[tid]['problem'] = f
+        if len(f.strip('/').split('/')) == 2:
+            continue
         else:
             dic[tid]['testcase'] = dic[tid].get('testcase', [])
             dic[tid]['testcase'].append(f)
@@ -65,8 +69,12 @@ async def qdu_export(file: UploadFile = File(...), db: Session = Depends(get_ses
         samples = problem_info['samples']
         is_spj = problem_info['spj'] is not None
         mode = 0 if problem_info['rule_type'] == 'ACM' else 1
-        test_case_score = {str(ix): it['score'] for ix, it in enumerate(problem_info['test_case_score'])}
-        total_score = sum([it['score'] for it in problem_info['test_case_score']])
+        try:
+            test_case_score = {str(ix): it['score'] for ix, it in enumerate(problem_info['test_case_score'])}
+            total_score = sum([it['score'] for it in problem_info['test_case_score']])
+        except:
+            test_case_score = {}
+            total_score = 0
         source = problem_info['source']
         inputs = problem_info['input_description']['value']
         outputs = problem_info['output_description']['value']
@@ -87,7 +95,7 @@ async def qdu_export(file: UploadFile = File(...), db: Session = Depends(get_ses
             total_score=total_score,
             source=source,
             hints=hint,
-            created_by=4,
+            created_by=1,
         )
         test_case_id = rand_str()
         test_case_dir = os.path.join('testcases', test_case_id)
@@ -98,6 +106,7 @@ async def qdu_export(file: UploadFile = File(...), db: Session = Depends(get_ses
         test_case_list = val['testcase']
         for item in test_case_list:
             file_name = item.split('/')[-1]
+            print(test_case_dir, item)
             with open(os.path.join(test_case_dir, file_name), "wb") as f:
                 content = zip_file.read(f"{item}").replace(b"\r\n", b"\n")
                 size_cache[file_name] = len(content)
