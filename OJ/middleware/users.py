@@ -33,10 +33,11 @@ class CheckLogin(BaseHTTPMiddleware):
             with Session(engine) as session:
                 session.begin()
                 token = request.headers.get('x-token', '')
-                print(request.headers)
                 sess = session.query(UserSession).filter(UserSession.token == token).first()
                 if not sess:
                     return JSONResponse({}, status_code=status.HTTP_401_UNAUTHORIZED)
+                if path.startswith('/api/admin') and not sess.user.is_admin:
+                    return Response('NOT ACCEPTABLE REQUEST', status_code=status.HTTP_406_NOT_ACCEPTABLE)
                 response = await call_next(request)
                 session.close()
             return response
