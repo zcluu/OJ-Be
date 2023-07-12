@@ -19,7 +19,7 @@ class ContestInfo(Base, BaseModel):
     # 2-->Hidden but available(visit by invitation URL)
     # 3-->Hidden and unavailable
     contest_type = Column(Integer, default=0)
-    password = Column(String(30), default='')  # needed if contest_type==1
+    password = Column(String(100), default='')  # needed if contest_type==1
     only_id = Column(String(50), default='')  # needed if contest_type==2
     rule = Column(Integer, default=0)  # 0-->ACM 1-->OI
     created_by = Column(Integer, ForeignKey('UserInfo.id'))
@@ -30,16 +30,18 @@ class ContestInfo(Base, BaseModel):
         if self.start_at > datetime.datetime.now():
             # 没有开始 返回1
             return ContestStatus.CONTEST_NOT_START
-        elif self.start_at < datetime.datetime.now():
+        elif self.end_at < datetime.datetime.now():
             # 已经结束 返回-1
             return ContestStatus.CONTEST_ENDED
         else:
             # 正在进行 返回0
             return ContestStatus.CONTEST_UNDERWAY
 
-    @property
-    def user(self):
-        return self._user
+    def user(self, filed=None):
+        if not filed:
+            return self._user
+        else:
+            return getattr(self._user, filed)
 
 
 class ACMRank(Base, BaseModel):
@@ -120,3 +122,22 @@ class Announcement(Base, BaseModel):
             return self._user
         else:
             return getattr(self._user, filed)
+
+
+class ContestProblem(Base, BaseModel):
+    __tablename__ = 'contest_problem'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    cid = Column(Integer, ForeignKey('ContestInfo.id'), nullable=False)
+    pid = Column(Integer, ForeignKey('ProblemInfo.id'), nullable=False)
+    is_visible = Column(Boolean, default=True)
+    _contest = relationship('ContestInfo', backref='cps')
+    _problem = relationship('ProblemInfo', backref='cps')
+
+    @property
+    def contest(self):
+        return self._contest
+
+    @property
+    def problem(self):
+        return self._problem
