@@ -1,3 +1,5 @@
+import datetime
+
 from pydantic import BaseModel
 
 
@@ -15,6 +17,7 @@ class RegisterForm(BaseModel):
 
 
 class ProblemForm(BaseModel):
+    cid: str = ''
     id: int = -1
     title: str
     description: str
@@ -32,6 +35,19 @@ class ProblemForm(BaseModel):
 
 
 class JudgeForm(BaseModel):
-    problem_id: str
+    pid: str
     language: str
     source_code: str
+    cp_id: str = ''
+
+
+class ContestForm(BaseModel):
+    id: int = -1
+    title: str
+    description: str
+    start_at: str
+    end_at: str
+    contest_type: int
+    password: str
+    only_id: str
+    rule: int

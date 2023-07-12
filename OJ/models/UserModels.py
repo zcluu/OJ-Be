@@ -51,3 +51,8 @@ class UserSession(Base, BaseModel):
                          onupdate=datetime.datetime.now() + datetime.timedelta(days=1),
                          default=datetime.datetime.now() + datetime.timedelta(days=1)
                          )
+    _user = relationship('UserInfo', backref='session')
+
+    @property
+    def user(self):
+        return self._user

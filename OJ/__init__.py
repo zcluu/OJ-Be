@@ -8,9 +8,12 @@ from .models import *
 from .middleware import users
 import warnings
 
+from .views.admin import *
+
 warnings.simplefilter("ignore", FastAPIPaginationWarning)
 
 app = FastAPI()
+# Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine)
 
 app.add_middleware(
@@ -26,3 +29,6 @@ app.include_router(problems_router)
 app.include_router(user_router)
 app.include_router(sub_router)
 app.include_router(con_router)
+app.include_router(admin_problem_router)
+app.include_router(admin_sys_router)
+app.include_router(admin_contest_router)

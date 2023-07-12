@@ -63,9 +63,18 @@ CHECKLOGIN_EXCLUDE_PATH = [
     '/api/user/login',
     '/api/submission/status',
     '/api/contest/recent',
+    '/api/contest/all',
+    '/api/contest/detail',
+    '/api/contest/announcements',
     '/api/problem/hot',
     '/api/problem/all',
     '/api/problem/detail',
+    '/api/admin/sys/qdu/import',
     '/docs',
     '/openapi.json',
 ]
+
+AES_KEY = 'zjuerzclu'
+AES_KEY = AES_KEY.ljust(16)
+
+TEST_CASE_DIR = ''
