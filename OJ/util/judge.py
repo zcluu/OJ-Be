@@ -116,10 +116,11 @@ class JudgeDispatcher(DispatcherBase):
             'max_cpu_time': problem.time_limit
         }
         with ChooseJudgeServer() as server:
-            if not server:
-                data = {"submission_id": self.submission.id, "problem_id": self.problem_id}
-                submission_cache.push(json.dumps(data))
-                return
+            # if not server:
+            #     print('No Server')
+            #     data = {"submission_id": self.submission.id, "problem_id": self.problem_id}
+            #     submission_cache.push(json.dumps(data))
+            #     return
             self.submission.result = JudgeStatus.JUDGING
             self.sess.commit()
             resp = self._request(urljoin(JUDGER_SERVER, "/judge"), data=judge_params, language=language)
@@ -172,8 +173,6 @@ class JudgeDispatcher(DispatcherBase):
             if is_ac:
                 problem_status.ac_id = self.submission.id
             problem_status.is_ac = is_ac
-        if problem_status.is_ac:
-            problem.ac_count = problem.ac_count + 1
         if not exist:
             self.sess.add(problem_status)
         self.sess.commit()
@@ -189,42 +188,11 @@ class JudgeDispatcher(DispatcherBase):
         user = self.submission.user
         problem_id = str(self.problem.id)
         if self.contest.rule == ContestRuleType.ACM:
-            # acm_problems_status = user.acm_problems_status
-            # if not acm_problems_status:
-            #     acm_problems_status = {}
-            # contest_problems_status = acm_problems_status.get("contest_problems", {})
-            # if problem_id not in contest_problems_status:
-            #     contest_problems_status[problem_id] = {"status": self.submission.result, "_id": self.problem.id}
-            # elif contest_problems_status[problem_id]["status"] != JudgeStatus.ACCEPTED:
-            #     contest_problems_status[problem_id]["status"] = self.submission.result
-            # else:
-            #     return
-            # acm_problems_status["contest_problems"] = contest_problems_status
-            # self.sess.query(UserInfo).filter_by(id=self.submission.user_id).update({
-            #     UserInfo.acm_problems_status: acm_problems_status
-            # })
-            # self.sess.commit()
             self._update_acm_contest_rank()
 
         elif self.contest.rule == ContestRuleType.OI:
-            # oi_problems_status = user.oi_problems_status
-            # if not oi_problems_status:
-            #     oi_problems_status = {}
-            # contest_problems_status = oi_problems_status.get("contest_problems", {})
-            # score = self.submission.statistic_info["score"]
-            # if problem_id not in contest_problems_status:
-            #     contest_problems_status[problem_id] = {"status": self.submission.result, "_id": self.problem.id,
-            #                                            "score": score}
-            # else:
-            #     contest_problems_status[problem_id]["score"] = score
-            #     contest_problems_status[problem_id]["status"] = self.submission.result
-            # oi_problems_status["contest_problems"] = contest_problems_status
-            # self.sess.query(UserInfo).filter_by(id=self.submission.user_id).update({
-            #     UserInfo.oi_problems_status: oi_problems_status
-            # })
-            # self.sess.commit()
             self._update_oi_contest_rank()
-        problem = self.sess.query(ProblemInfo).filter_by(contest_id=self.contest_id, id=self.problem.id).first()
+        problem = self.sess.query(ProblemInfo).filter_by(id=self.problem.id).first()
         result = str(self.submission.result)
         problem_info = problem.statistic_info
         problem_info[result] = problem_info.get(result, 0) + 1
@@ -241,7 +209,7 @@ class JudgeDispatcher(DispatcherBase):
             ac_count = ac_count + 1
         else:
             wa_count = wa_count + 1
-        self.sess.query(ProblemInfo).filter_by(contest_id=self.contest_id, id=self.problem.id).update({
+        self.sess.query(ProblemInfo).filter_by(id=self.problem.id).update({
             ProblemInfo.ac_count: ac_count,
             ProblemInfo.wa_count: wa_count,
             ProblemInfo.submission_count: submission_count,
