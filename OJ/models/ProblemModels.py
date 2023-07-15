@@ -56,8 +56,8 @@ class UserProblemStatus(Base, BaseModel):
     __tablename__ = 'UserProblemStatus'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('UserInfo.id'))
-    problem_id = Column(Integer, ForeignKey('ProblemInfo.id'))
+    user_id = Column(Integer, ForeignKey('UserInfo.id'), nullable=False)
+    problem_id = Column(Integer, ForeignKey('ProblemInfo.id'), nullable=False)
     ac_id = Column(Integer, ForeignKey('Submission.id'))  # first ac
     is_ac = Column(Boolean, default=False)
     score = Column(Integer, default=0)  # if problem.mode == OI

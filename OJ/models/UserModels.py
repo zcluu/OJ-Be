@@ -14,7 +14,7 @@ class UserInfo(Base, BaseModel):
     email = Column(String(200), unique=True, nullable=False)
     password = Column(String(200))
     is_admin = Column(Boolean, default=False)
-    lastlogin = Column(DateTime, default=datetime.datetime.now())
+    lastlogin = Column(DateTime, default=datetime.datetime.now)
 
     real_name = Column(String(30), nullable=True)
     accepted_number = Column(Integer, default=0)
@@ -38,12 +38,12 @@ class UserSession(Base, BaseModel):
     __tablename__ = 'UserSession'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('UserInfo.id'))
-    token = Column(String(200))
+    user_id = Column(Integer, ForeignKey('UserInfo.id'), nullable=False)
+    token = Column(String(200), nullable=False)
     sess2user = relationship('UserInfo', backref='user2sess')
     time = Column(DateTime,
-                  onupdate=datetime.datetime.now(),
-                  default=datetime.datetime.now()
+                  onupdate=datetime.datetime.now,
+                  default=datetime.datetime.now
                   )
     expire_time = Column(DateTime,
                          onupdate=datetime.datetime.now() + datetime.timedelta(days=1),

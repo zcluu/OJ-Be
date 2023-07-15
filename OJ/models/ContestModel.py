@@ -66,8 +66,8 @@ class ACMRank(Base, BaseModel):
     __tablename__ = 'ACMRank'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('UserInfo.id'))
-    cp_id = Column(Integer, ForeignKey('ContestProblem.id'))
+    user_id = Column(Integer, ForeignKey('UserInfo.id'), nullable=False)
+    cp_id = Column(Integer, ForeignKey('ContestProblem.id'), nullable=False)
     submission_id = Column(Integer, ForeignKey('Submission.id'))
     submission_number = Column(Integer, default=0)  # tries
 
