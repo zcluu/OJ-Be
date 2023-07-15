@@ -45,7 +45,7 @@ async def delete_problem(pid: str, db: Session = Depends(get_session)):
 
 
 @router.get("/all")
-async def contest_all(db: Session = Depends(get_session), params: Params = Depends()):
+async def problem_all(db: Session = Depends(get_session), params: Params = Depends()):
     problems = db.query(ProblemInfo).filter(or_(ProblemInfo.status == 0, ProblemInfo.status == 1)).all()
     result = []
     for pro in problems:
