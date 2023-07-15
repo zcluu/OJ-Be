@@ -98,11 +98,13 @@ async def problem_update(problem: ProblemForm, db: Session = Depends(get_session
 async def problem_add(problem: ProblemForm, x_token: Union[str, None] = Header(None),
                       db: Session = Depends(get_session)):
     if problem.cid != '':
+        sta = 3
         try:
             cid = AESTool.decrypt_data(problem.cid)
         except:
             return Response('Invalid Request', status_code=status.HTTP_400_BAD_REQUEST)
     else:
+        sta = 1
         cid = None
     pro = ProblemInfo()
     pro.title = problem.title
@@ -119,14 +121,14 @@ async def problem_add(problem: ProblemForm, x_token: Union[str, None] = Header(N
     pro.hints = problem.hints
     pro.test_id = problem.test_id
     pro.created_by = get_user(x_token).id
-    pro.contest_id = cid
+    pro.status = sta
 
     db.add(pro)
     db.commit()
-
-    cp = ContestProblem(cid=cid, pid=pro.id)
-    db.add(cp)
-    db.commit()
+    if cid:
+        cp = ContestProblem(cid=cid, pid=pro.id)
+        db.add(cp)
+        db.commit()
 
     return True
 

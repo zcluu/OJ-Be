@@ -4,7 +4,6 @@ import datetime
 
 from OJ.util.constant import ContestStatus
 from OJ.db.database import Base, BaseModel
-from OJ.util.common import hash256
 
 
 class ContestInfo(Base, BaseModel):
@@ -44,24 +43,41 @@ class ContestInfo(Base, BaseModel):
             return getattr(self._user, filed)
 
 
+class ContestProblem(Base, BaseModel):
+    __tablename__ = 'ContestProblem'
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    cid = Column(Integer, ForeignKey('ContestInfo.id'), nullable=False)
+    pid = Column(Integer, ForeignKey('ProblemInfo.id'), nullable=False)
+    is_visible = Column(Boolean, default=True)
+    _contest = relationship('ContestInfo', backref='cps')
+    _problem = relationship('ProblemInfo', backref='cps')
+
+    @property
+    def contest(self):
+        return self._contest
+
+    @property
+    def problem(self):
+        return self._problem
+
+
 class ACMRank(Base, BaseModel):
     __tablename__ = 'ACMRank'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('UserInfo.id'))
-    contest_id = Column(Integer, ForeignKey('ContestInfo.id'))
-    problem_id = Column(Integer, ForeignKey('ProblemInfo.id'))
+    cp_id = Column(Integer, ForeignKey('ContestProblem.id'))
     submission_id = Column(Integer, ForeignKey('Submission.id'))
     submission_number = Column(Integer, default=0)  # tries
-    error_number = Column(Integer, default=0)
-    accepted_number = Column(Integer, default=0)
+
     total_time = Column(BigInteger, default=0)
     is_ac = Column(Boolean, default=False)
     is_first_ac = Column(Boolean, default=False)
     ac_time = Column(Integer, default=0)
 
     _user = relationship('UserInfo', backref='acm_ranks')
-    _contest = relationship('ContestInfo', backref='acm_ranks')
+    _cp = relationship('ContestProblem', backref='acm_rank')
     _submission = relationship('Submission')
 
     def user(self, filed=None):
@@ -70,24 +86,34 @@ class ACMRank(Base, BaseModel):
         else:
             return getattr(self._user, filed)
 
+    @property
+    def cp(self) -> ContestProblem:
+        return self._cp
+
+    @property
+    def contest(self) -> ContestInfo:
+        return self.cp.contest
+
+    @property
+    def problem(self):
+        return self.cp.problem
+
 
 class OIRank(Base, BaseModel):
     __tablename__ = 'oi_rank'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('UserInfo.id'))
-    contest_id = Column(Integer, ForeignKey('ContestInfo.id'))
-    problem_id = Column(Integer, ForeignKey('ProblemInfo.id'))
+    cp_id = Column(Integer, ForeignKey('ContestProblem.id'))
     submission_id = Column(Integer, ForeignKey('Submission.id'))
     submission_number = Column(Integer, default=0)  # tries
 
-    error_number = Column(Integer, default=0)
     total_score = Column(Integer, default=0)
     is_ac = Column(Boolean, default=False)
     ac_time = Column(Integer, default=0)
 
     _user = relationship('UserInfo', backref='oi_ranks')
-    _contest = relationship('ContestInfo', backref='oi_ranks')
+    _cp = relationship('ContestProblem', backref='oi_rank')
     _submission = relationship('Submission')
 
     @property
@@ -95,8 +121,16 @@ class OIRank(Base, BaseModel):
         return self._user
 
     @property
-    def contest(self):
-        return self._contest
+    def cp(self) -> ContestProblem:
+        return self._cp
+
+    @property
+    def contest(self) -> ContestInfo:
+        return self.cp.contest
+
+    @property
+    def problem(self):
+        return self.cp.problem
 
     @property
     def submission(self):
@@ -122,22 +156,3 @@ class Announcement(Base, BaseModel):
             return self._user
         else:
             return getattr(self._user, filed)
-
-
-class ContestProblem(Base, BaseModel):
-    __tablename__ = 'contest_problem'
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    cid = Column(Integer, ForeignKey('ContestInfo.id'), nullable=False)
-    pid = Column(Integer, ForeignKey('ProblemInfo.id'), nullable=False)
-    is_visible = Column(Boolean, default=True)
-    _contest = relationship('ContestInfo', backref='cps')
-    _problem = relationship('ProblemInfo', backref='cps')
-
-    @property
-    def contest(self):
-        return self._contest
-
-    @property
-    def problem(self):
-        return self._problem

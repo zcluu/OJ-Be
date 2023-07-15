@@ -43,12 +43,9 @@ async def get_all(db: Session = Depends(get_session), params: Params = Depends()
 
     result = []
     for it in contests:
-        dic = it.to_dict()
-        dic['status'] = it.status
-        del dic['contest_type']
-        del dic['created_by']
-        del dic['password']
-        del dic['only_id']
+        dic = it.to_dict([
+            'title', 'description', 'start_at', 'end_at', 'rule', 'status'
+        ])
         dic['admin'] = it.user('username')
         dic['rule'] = 'ACM' if dic['rule'] == 0 else 'OI'
         result.append(dic)
@@ -103,12 +100,12 @@ async def get_rank(cid, db: Session = Depends(get_session), params: Params = Dep
     cps = db.query(ContestProblem).filter_by(cid=cid).all()
     problems = [cp.problem for cp in cps]
     problems_id = {it.id: ix for ix, it in enumerate(problems)}
-    result = []
     usernames = []
     u_result = {}
     u_rank = {}
+    cps = db.query(ContestProblem).filter_by(cid=cid).all()
     if contest.rule == ContestRuleType.ACM:
-        ranks = db.query(ACMRank).filter_by(contest_id=cid).all()
+        ranks = [cp.acm_rank for cp in cps]
         for rank in ranks:
             username = rank.user('username')
             usernames.append(username)

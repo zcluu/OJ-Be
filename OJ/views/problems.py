@@ -69,7 +69,7 @@ async def problem_detail(
     problem_id = AESTool.decrypt_data(pid)
     if cid > 0:
         cp = db.query(ContestProblem).filter_by(pid=problem_id, cid=cid).first()
-        if not cp:
+        if not cp or not cp.is_visible:
             return JSONResponse({
                 'msg': '问题不存在，异常访问'
             }, status_code=404)
@@ -77,10 +77,10 @@ async def problem_detail(
     else:
         cp = None
         problem = db.query(ProblemInfo).filter_by(id=problem_id).first()
-    if not problem or problem.status == 1:
-        return JSONResponse({
-            'msg': '问题不存在，异常访问'
-        }, status_code=404)
+        if not problem or problem.status > 0:
+            return JSONResponse({
+                'msg': '问题不存在，异常访问'
+            }, status_code=404)
     user = get_user(x_token)
     response = problem.to_dict()
     if response['samples']:

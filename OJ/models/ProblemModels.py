@@ -37,14 +37,9 @@ class ProblemInfo(Base, BaseModel):
     total_score = Column(Integer, default=0)
     create_time = Column(DateTime, default=datetime.datetime.now)
     created_by = Column(Integer, ForeignKey('UserInfo.id'))
-    contest_id = Column(Integer, ForeignKey('ContestInfo.id'))
     statistic_info = Column(JSON, default={})
     _user = relationship('UserInfo', backref='problems')
-    _contest = relationship('ContestInfo', backref='problems')
 
-    @property
-    def contest(self):
-        return self._contest
 
     @property
     def pid(self):
@@ -82,11 +77,3 @@ class UserProblemStatus(Base, BaseModel):
     @property
     def problem(self):
         return self._problem
-
-    @property
-    def is_available(self):
-        if not self.problem.contest_id:
-            return True
-        if self.problem.contest.status != ContestStatus.CONTEST_ENDED:
-            return False
-        return True

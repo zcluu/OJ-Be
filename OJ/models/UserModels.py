@@ -16,8 +16,6 @@ class UserInfo(Base, BaseModel):
     is_admin = Column(Boolean, default=False)
     lastlogin = Column(DateTime, default=datetime.datetime.now())
 
-    acm_problems_status = Column(JSON, default={})
-    oi_problems_status = Column(JSON, default={})
     real_name = Column(String(30), nullable=True)
     accepted_number = Column(Integer, default=0)
     total_score = Column(Integer, default=0)

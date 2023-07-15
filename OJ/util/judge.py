@@ -62,7 +62,7 @@ class DispatcherBase(object):
 
 class JudgeDispatcher(DispatcherBase):
 
-    def __init__(self, submission_id, problem_id, session=SessionLocal()):
+    def __init__(self, submission_id, problem_id, session=SessionLocal(), cp_id=-1):
         """
         :param submission_id: which submission
         :param problem_id: which problem
@@ -70,6 +70,11 @@ class JudgeDispatcher(DispatcherBase):
         """
         super().__init__()
         self.sess = session
+        self.cp_id = cp_id
+        if cp_id > 0:
+            self.cp = self.sess.query(ContestProblem).filter_by(id=cp_id).first()
+        else:
+            self.cp = None
         self.submission_id = submission_id
 
         self.submission = self.sess.query(Submission).filter_by(id=self.submission_id).first()
@@ -146,35 +151,35 @@ class JudgeDispatcher(DispatcherBase):
             else:
                 self.submission.result = JudgeStatus.PARTIALLY_ACCEPTED
         self.sess.commit()
-        problem_status = self.sess.query(UserProblemStatus).filter_by(
+        ups = self.sess.query(UserProblemStatus).filter_by(
             user_id=self.submission.user_id,
             problem_id=self.problem_id
         ).first()
         problem.submission_count = self.problem.submission_count + 1
-        if not problem_status:
-            problem_status = UserProblemStatus(
+        if not ups:
+            ups = UserProblemStatus(
                 user_id=self.submission.user_id,
                 problem_id=self.problem_id,
             )
             exist = False
         else:
             exist = True
-        if exist and problem_status.is_ac:
+        if exist and ups.is_ac:
             return
         if self.problem.mode == PROBLEM_MODE.OI:
             now_score = self.statistic_info['score']
             is_ac = self.problem.total_score == now_score
-            problem_status.is_ac = is_ac
+            ups.is_ac = is_ac
             if is_ac:
-                problem_status.ac_id = self.submission.id
-            problem_status.score = now_score
+                ups.ac_id = self.submission.id
+            ups.score = now_score
         else:
             is_ac = self.submission.result == JudgeStatus.ACCEPTED
             if is_ac:
-                problem_status.ac_id = self.submission.id
-            problem_status.is_ac = is_ac
+                ups.ac_id = self.submission.id
+            ups.is_ac = is_ac
         if not exist:
-            self.sess.add(problem_status)
+            self.sess.add(ups)
         self.sess.commit()
 
         if self.contest_id:
@@ -185,8 +190,6 @@ class JudgeDispatcher(DispatcherBase):
         self.sess.close()
 
     def update_contest_problem_status(self):
-        user = self.submission.user
-        problem_id = str(self.problem.id)
         if self.contest.rule == ContestRuleType.ACM:
             self._update_acm_contest_rank()
 
@@ -220,19 +223,11 @@ class JudgeDispatcher(DispatcherBase):
     def _update_acm_contest_rank(self):
         with Session(engine) as session:
             session.begin()
-            rank = session.query(ACMRank).filter_by(
-                contest_id=self.contest_id,
-                problem_id=self.problem_id
-            )
+            rank = session.query(ACMRank).filter_by(cp_id=self.cp_id)
             user_rank = rank.filter_by(user_id=self.submission.user_id).first()
             ac_rank = rank.filter_by(is_ac=True).all()
-            rank = rank.first()
             if not user_rank:
                 is_ac = self.submission.result == 0
-                if is_ac:
-                    accepted_number = 1
-                else:
-                    accepted_number = 0
                 submission_number = 1
                 if is_ac:
                     diff_time = datetime.datetime.now() - self.contest.start_at
@@ -244,11 +239,9 @@ class JudgeDispatcher(DispatcherBase):
                 is_first_ac = len(ac_rank) == 0
                 new_rank = ACMRank(
                     user_id=self.submission.user_id,
-                    contest_id=self.contest_id,
-                    problem_id=self.problem_id,
+                    cp_id=self.cp_id,
                     submission_id=self.submission.id,
                     submission_number=submission_number,
-                    accepted_number=accepted_number,
                     total_time=total_time,
                     is_ac=is_ac,
                     is_first_ac=is_first_ac,
@@ -262,37 +255,30 @@ class JudgeDispatcher(DispatcherBase):
                 user_rank.submission_number = submission_number + 1
                 is_ac = self.submission.result == 0
                 if is_ac:
-                    accepted_number = 1
                     diff_time = datetime.datetime.now() - self.contest.start_at
                     ac_time = diff_time.days * 24 * 3600 + diff_time.seconds
                     total_time = submission_number * 20 * 60 + ac_time
                 else:
                     ac_time = None
-                    accepted_number = 0
                     total_time = user_rank.total_time + 20 * 60
                 is_first_ac = len(ac_rank) == 0 and is_ac
                 user_rank.is_ac = is_ac
-                user_rank.accepted_number = accepted_number
                 user_rank.total_time = total_time
                 user_rank.is_first_ac = is_first_ac
                 user_rank.ac_time = ac_time
             session.commit()
 
     def _update_oi_contest_rank(self):
-        print('update oi rank')
         with Session(engine) as session:
             session.begin()
             rank = session.query(OIRank).filter_by(
                 user_id=self.submission.user_id,
-                contest_id=self.contest_id,
-                problem_id=self.problem_id,
-                submission_id=self.submission_id,
+                cp_id=self.cp_id,
             ).first()
             if not rank:
                 rank = OIRank(
                     user_id=self.submission.user_id,
-                    contest_id=self.contest_id,
-                    problem_id=self.problem_id,
+                    cp_id=self.cp_id,
                     submission_id=self.submission_id,
                     total_score=self.submission.statistic_info["score"],
                     submission_number=1,

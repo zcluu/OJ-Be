@@ -40,6 +40,7 @@ async def judge(form: JudgeForm, x_token: Union[str, None] = Header(None), db: S
         else:
             cid = None
     else:
+        cp = None
         cid = None
     submission = Submission(language=language,
                             user_id=user_id,
@@ -48,15 +49,18 @@ async def judge(form: JudgeForm, x_token: Union[str, None] = Header(None), db: S
                             contest_id=cid)
     db.add(submission)
     db.commit()
-    thread = Thread(target=SubmissionJudge, args=(submission.id, pid))
+    if cp:
+        thread = Thread(target=SubmissionJudge, args=(submission.id, pid, cp.id))
+    else:
+        thread = Thread(target=SubmissionJudge, args=(submission.id, pid))
     thread.start()
     # JudgeDispatcher(submission.id, problem.id, db).judge()
     return submission.id
 
 
-def SubmissionJudge(sid, pid):
+def SubmissionJudge(sid, pid, cp_id=-1):
     sess = SessionLocal()
-    dis = JudgeDispatcher(sid, pid, sess)
+    dis = JudgeDispatcher(sid, pid, sess, cp_id)
     dis.judge()
 
 

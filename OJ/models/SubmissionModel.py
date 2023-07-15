@@ -11,11 +11,11 @@ class Submission(Base, BaseModel):
     __tablename__ = 'Submission'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('UserInfo.id'))
     language = Column(String(30))
     contest_id = Column(Integer, ForeignKey('ContestInfo.id'))
     problem_id = Column(Integer, ForeignKey('ProblemInfo.id'))
     create_time = Column(DateTime, default=datetime.datetime.now)
-    user_id = Column(Integer, ForeignKey('UserInfo.id'))
     code_source = Column(String(5000), nullable=False)
     result = Column(Integer, default=JudgeStatus.PENDING)
     info = Column(JSON, default={})  # judger response
