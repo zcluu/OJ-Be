@@ -20,5 +20,7 @@ setup(
         'PyMySQL',
         'uvicorn',
         'python-multipart',
+        'PyYAML',
+        'cryptography'
     ]
 )

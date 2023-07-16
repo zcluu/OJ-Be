@@ -20,8 +20,6 @@ SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://{user}:{password}@{host}:{port}/{data
     host=environ.get('DB_HOST', '127.0.0.1'),
     port=environ.get('DB_PORT', 3306),
     database=environ.get('DB_NAME', 'DB_NAME'))
-SQLALCHEMY_TRACK_MODIFICATIONS = True  # 禁止警告
-SQLALCHEMY_ECHO = False  # 是否打印
 # # SQLALCHEMY_POOL_SIZE = 15  # 数据库连接池的大小。默认是数据库引擎的默认值 （通常是 5）。
 # # SQLALCHEMY_POOL_TIMEOUT = 10  # 指定数据库连接池的超时时间。默认是 10。
 # # SQLALCHEMY_POOL_RECYCLE = 60 * 60 * 2  # 自动回收连接的秒数。
@@ -31,7 +29,7 @@ SQLALCHEMY_ECHO = False  # 是否打印
 # SQLALCHEMY_POOL_RECYCLE = 60 * 60 * 2  # 自动回收连接的秒数。
 # SQLALCHEMY_MAX_OVERFLOW = 20  # 控制在连接池达到最大值后可以创建的连接数。
 
-# ****** Celery 配置 celery.app.utils.py
+
 REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
 REDIS_PORT = os.environ.get('REDIS_PORT', 6379)
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD', 'REDIS_PASSWORD')
@@ -43,17 +41,12 @@ else:
     RESULT_BACKEND = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
     BROKER_URL = f'redis://{REDIS_PORT}/{REDIS_DB}'
 
-# ############################## flask project auto config ######################################
-DOWNLOAD_FOLDER = '/tmp'
-HOME_PATH = '/'
-
-# ############################## flask start config ######################################
-HOST = '0.0.0.0'
-PORT = 8000
+HOST = environ.get('HOST', '0.0.0.0')
+PORT = environ.get('PORT', 16808)
 
 JUDGER_SERVER = 'http://{judger_host}:{judger_port}/'.format(
     judger_host=environ.get('JUDGER_HOST', '127.0.0.1'),
-    judger_port=environ.get('JUDGER_PORT', '6358'),
+    judger_port=environ.get('JUDGER_PORT', '16358'),
 )
 JUDGER_TOKEN = environ.get('JUDGER_TOKEN', '123456')
 
@@ -74,7 +67,7 @@ CHECKLOGIN_EXCLUDE_PATH = [
     '/openapi.json',
 ]
 
-AES_KEY = 'zjuerzclu'
+AES_KEY = environ.get('AES_KEY', 'Your_AES_KEY')
 AES_KEY = AES_KEY.ljust(16)
 
 TEST_CASE_DIR = ''

@@ -1,0 +1,21 @@
+server:
+  host: '0.0.0.0'
+  port: 16808
+  is_cors: 1
+JUDGER_TOKEN: 'JUDGER_TOKEN'
+JUDGER_HOST: 'JUDGER_HOST'
+JUDGER_PORT: 'JUDGER_PORT'
+AES_KEY: 'AES_KEY'
+test_case:
+  dir: './testcases'
+mysql:
+  user: 'user'
+  pass: 'pass'
+  host: 'host'
+  port: 'port'
+  name: 'name'
+redis:
+  host: 'host'
+  port: 'port'
+  pass: 'pass'
+  db: 'db'
