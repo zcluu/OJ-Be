@@ -31,6 +31,7 @@ class OJBe(object):
                 allow_headers=["*"],
             )
 
+        self.add_middleware(users.CheckLogin)
         self.add_routes([
             problems_router,
             user_router,
