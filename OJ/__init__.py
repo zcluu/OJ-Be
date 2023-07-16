@@ -21,7 +21,7 @@ class OJBe(object):
         self.port = port
 
         self.app = FastAPI()
-
+        Base.metadata.create_all(engine)
         if cors:
             self.add_middleware(
                 CORSMiddleware,
