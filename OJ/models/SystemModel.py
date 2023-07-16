@@ -1,10 +1,7 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Text, JSON
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Text, JSON
 import datetime
 
 from OJ.db.database import Base, BaseModel
-from OJ.util.common import hash256
-from OJ.util.constant import *
 
 
 class SysAnnouncement(Base, BaseModel):

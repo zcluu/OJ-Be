@@ -1,30 +1,22 @@
-import time
+import os
 from typing import Union
 
-from fastapi import Request, UploadFile, File, APIRouter, Depends, Header, status
-from fastapi.responses import JSONResponse, Response
-
-import os
-import requests
-from sqlalchemy import desc
+from fastapi import UploadFile, File, APIRouter, Depends, Header, status
+from fastapi.responses import Response
 
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, and_
 
-from OJ.app.settings import PROJECT_PATH, JUDGER_SERVER
-
-from OJ.models import UserInfo
 from OJ.db.database import get_session
 from OJ.util.aes import AESTool
 from OJ.util.common import rand_str, hash256
 from OJ.util.controller import get_user
 from OJ.util.zip_processor import TestCaseZipProcessor
-
 from OJ.util.schedule import *
 
-from OJ.models import ContestInfo, ProblemInfo, UserProblemStatus, ContestProblem
+from OJ.models import ProblemInfo, ContestProblem
 
-from fastapi_pagination import Page, Params, paginate
+from fastapi_pagination import Params, paginate
 
 router = APIRouter(
     prefix='/api/admin/problem',

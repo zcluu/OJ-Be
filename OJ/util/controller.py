@@ -1,4 +1,3 @@
-from typing import Optional, Any, Union
 from OJ.models.UserModels import UserSession, UserInfo
 
 from sqlalchemy.orm import Session

@@ -1,9 +1,7 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Float
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, Float
 import datetime
 
 from OJ.db.database import Base, BaseModel
-from OJ.util.common import hash256
 
 
 class JudgeServer(Base, BaseModel):

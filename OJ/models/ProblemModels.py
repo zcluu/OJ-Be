@@ -4,8 +4,6 @@ import datetime
 
 from OJ.db.database import Base, BaseModel
 from OJ.util.aes import AESTool
-from OJ.util.constant import ContestStatus
-from OJ.util.common import hash256
 
 
 class ProblemInfo(Base, BaseModel):

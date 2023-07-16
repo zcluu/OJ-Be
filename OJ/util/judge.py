@@ -1,20 +1,15 @@
 import hashlib
 import json
 import logging
-import time
 from urllib.parse import urljoin
-
-import dramatiq
-from fastapi import Depends
 
 from sqlalchemy.orm import Session
 import requests
 
 from OJ.app.settings import *
-from OJ.db.database import get_session, engine, SessionLocal
+from OJ.db.database import engine, SessionLocal
 from OJ.models import *
 from OJ.models.JudgeModel import JudgeServer
-from OJ.util import submission_cache
 
 logger = logging.getLogger(__name__)
 

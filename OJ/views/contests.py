@@ -4,15 +4,11 @@ from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
 from OJ.db.database import get_session
-from OJ.util.controller import get_user
-from OJ.util.judge import JudgeDispatcher
-from OJ.util.constant import JudgeStatus, CONTEST_TYPE, ContestRuleType
-from OJ.util.schedule import *
-from OJ.models import Submission, ProblemInfo, ContestInfo, Announcement, ACMRank, ContestProblem
+from OJ.util.constant import CONTEST_TYPE, ContestRuleType
+from OJ.models import ContestInfo, Announcement, ContestProblem
 from OJ.util.aes import AESTool
 
 from fastapi_pagination import Page, paginate, Params
-from typing import Union
 
 router = APIRouter(
     prefix='/api/contest',
