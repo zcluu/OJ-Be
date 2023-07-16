@@ -24,15 +24,3 @@ def get_session():
         db.commit()
     finally:
         db.close()
-
-# @contextlib.contextmanager
-# def get_session():
-#     session = SessionLocal()  # 创建会话
-#     try:
-#         yield session
-#         session.commit()
-#     except Exception:
-#         session.rollback()
-#         raise
-#     finally:
-#         session.close()

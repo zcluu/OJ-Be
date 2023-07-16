@@ -1,6 +1,11 @@
-from OJ import app
-from OJ.app.settings import *
-import uvicorn
+from OJ import OJBe
+from OJ.middleware import users
 
+# example application
 if __name__ == '__main__':
-    uvicorn.run("main:app", host=HOST, port=PORT, reload=DEBUG)
+    server = OJBe()
+    # add custom middleware
+    server.add_middleware(users.CheckLogin)
+    # You can also add other routes here
+    # server.add_route(...)
+    server.start()
