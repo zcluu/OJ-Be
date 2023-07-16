@@ -88,45 +88,43 @@ async def get_announcements(contest_id, db: Session = Depends(get_session)):
 @router.get('/rank')
 async def get_rank(cid, db: Session = Depends(get_session), params: Params = Depends()):
     contest = db.query(ContestInfo).filter_by(id=cid).first()
-
     if not contest:
         return JSONResponse({
             'msg': '比赛不存在，异常访问'
         }, status_code=status.HTTP_404_NOT_FOUND)
     cps = db.query(ContestProblem).filter_by(cid=cid).all()
     problems = [cp.problem for cp in cps]
-    problems_id = {it.id: ix for ix, it in enumerate(problems)}
+    pids = {it.id: ix for ix, it in enumerate(problems)}
     usernames = []
     u_result = {}
     u_rank = {}
     cps = db.query(ContestProblem).filter_by(cid=cid).all()
     if contest.rule == ContestRuleType.ACM:
-        ranks = [cp.acm_rank for cp in cps]
-        for rank in ranks:
-            username = rank.user('username')
-            usernames.append(username)
-            u_rank[username] = u_rank.get(username, [])
-            u_rank[username].append(rank)
-            u_result[username] = u_result.get(username, {})
-            u_result[username]['submissions'] = u_result[username].get('submissions',
-                                                                       [{} for _ in range(len(problems))])
-            u_result[username]['problems'] = u_result[username].get('problems', [0 for _ in range(len(problems))])
-            u_result[username]['problems'][problems_id[rank.problem_id]] = 1
-            u_result[username]['submission_count'] = u_result[username].get('submission_count', 0) + \
-                                                     rank.submission_number
+        for cp in cps:
+            for rank in cp.acm_rank:
+                username = rank.user('username')
+                usernames.append(username)
+                u_rank[username] = u_rank.get(username, [])
+                u_rank[username].append(rank)
+                u_result[username] = u_result.get(username, {})
+                u_result[username]['submissions'] = u_result[username].get('submissions',
+                                                                           [{} for _ in range(len(problems))])
+                u_result[username]['problems'] = u_result[username].get('problems', [0 for _ in range(len(problems))])
+                u_result[username]['problems'][pids[cp.pid]] = 1
+                u_result[username]['submission_count'] = u_result[username].get('submission_count', 0) + \
+                                                         rank.submission_number
 
-            u_result[username]['ac_count'] = u_result[username].get('ac_count', 0) + rank.is_ac
-            u_result[username]['total_time'] = u_result[username].get('total_time', 0)
-            if rank.is_ac:
-                u_result[username]['total_time'] += rank.total_time
-                u_result[username]['is_ac'] = True
-            else:
-                u_result[username]['is_ac'] = False
-            u_result[username]['submissions'][problems_id[rank.problem_id]]['total_time'] = rank.total_time
-            u_result[username]['submissions'][problems_id[rank.problem_id]]['is_ac'] = rank.is_ac
-            u_result[username]['submissions'][problems_id[rank.problem_id]]['is_first_ac'] = rank.is_first_ac
-            u_result[username]['submissions'][problems_id[rank.problem_id]][
-                'submission_number'] = rank.submission_number
+                u_result[username]['ac_count'] = u_result[username].get('ac_count', 0) + rank.is_ac
+                u_result[username]['total_time'] = u_result[username].get('total_time', 0)
+                if rank.is_ac:
+                    u_result[username]['total_time'] += rank.total_time
+                    u_result[username]['is_ac'] = True
+                else:
+                    u_result[username]['is_ac'] = False
+                u_result[username]['submissions'][pids[cp.pid]]['total_time'] = rank.total_time
+                u_result[username]['submissions'][pids[cp.pid]]['is_ac'] = rank.is_ac
+                u_result[username]['submissions'][pids[cp.pid]]['is_first_ac'] = rank.is_first_ac
+                u_result[username]['submissions'][pids[cp.pid]]['submission_number'] = rank.submission_number
     response = []
     for key, val in u_result.items():
         dic = {'username': key}
