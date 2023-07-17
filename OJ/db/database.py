@@ -1,12 +1,20 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import importlib
 
-from OJ.app.settings import SQLALCHEMY_DATABASE_URI
+__all__ = ['Base', 'BaseModel']
 
-engine = create_engine(SQLALCHEMY_DATABASE_URI)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=True)
 Base = declarative_base()
+SessionLocal = None
+engine = None
+
+
+def create_connection():
+    global engine, SessionLocal
+    settings = importlib.import_module('OJ.app.settings')
+    engine = create_engine(settings.SQLALCHEMY_DATABASE_URI)
+    SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=True)
 
 
 class BaseModel(object):

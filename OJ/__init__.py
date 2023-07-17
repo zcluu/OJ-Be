@@ -25,12 +25,14 @@ class OJBe(object):
         self.setup()
 
     def setup(self):
+        db = importlib.import_module('OJ.db.database')
+        db.create_connection()
+        db.Base.metadata.create_all(db.engine)
+
         users_mw = importlib.import_module('OJ.middleware.users')
         urls = importlib.import_module('OJ.views')
         self.add_middleware(users_mw.CheckLogin)
         self.add_routes(urls.routes)
-        db = importlib.import_module('OJ.db.database')
-        db.Base.metadata.create_all(db.engine)
 
         if self.config['server'].get('is_cors', 0) == 1:
             self.add_middleware(
@@ -98,7 +100,12 @@ class OJBe(object):
         self.app.add_middleware(mw, **kwargs)
 
     def exclude_check_login(self, path):
-        settings.CHECKLOGIN_EXCLUDE_PATH.append(path)
+        setting = importlib.import_module('OJ.app.settings')
+        setting.CHECKLOGIN_EXCLUDE_PATH.append(path)
+
+    def add_model(self, custom_base):
+        db = importlib.import_module('OJ.db.database')
+        custom_base.metadata.create_all(db.engine)
 
     def start(self):
         uvicorn.run(self.app, host=self.host, port=self.port)

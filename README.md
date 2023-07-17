@@ -76,3 +76,20 @@ server = OJBe()
 server.add_middleware(YourMiddleware)
 ...
 ```
+If you want to create new table, please follow these steps.
+```python
+from sqlalchemy import Column, Integer
+from sqlalchemy.orm import declarative_base
+
+Base = declarative_base()
+
+class ClassName(Base):
+    __tablename__ = 'tb_name'
+
+    id = Column(Integer, primary_key=True)
+    ...
+
+server = OJBe()
+server.add_model(Base)
+```
+You will find that this step is the same as the one used by sqlalchemy to create a new table. The difference is that our package needs to use OJ.OBe.add_ Model to create a new table. 
